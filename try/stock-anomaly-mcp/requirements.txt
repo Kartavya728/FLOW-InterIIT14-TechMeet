@@ -1,0 +1,7 @@
+pathway[xpack-llm]
+yfinance
+pandas
+scikit-learn
+sentence-transformers
+fastmcp
+aiohttp
