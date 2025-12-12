@@ -1,0 +1,305 @@
+# Targeted-Calling Pipeline - Full Docker Compose
+# Uses different ports from Fraud-Detection to allow parallel execution
+
+services:
+  # ==========================================================================
+  # INFRASTRUCTURE SERVICES
+  # ==========================================================================
+
+  redis:
+    image: redis:7-alpine
+    container_name: targeting-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - targeting-network
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: targeting-nats
+    ports:
+      - "4223:4222"
+      - "8223:8222"
+    command: [ "-js", "-m", "8222" ]
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8222/healthz" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - targeting-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: targeting-prometheus
+    ports:
+      - "9095:9090"
+    volumes:
+      - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    networks:
+      - targeting-network
+    depends_on:
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: targeting-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=1s
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ../grafana/provisioning:/etc/grafana/provisioning
+      - ../grafana/dashboards:/var/lib/grafana/dashboards
+    restart: unless-stopped
+    networks:
+      - targeting-network
+    depends_on:
+      - prometheus
+
+  # ==========================================================================
+  # DATASET PREPROCESSING (runs once on start)
+  # ==========================================================================
+
+  dataset-init:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.pipeline
+    container_name: targeting-dataset-init
+    command: |
+      bash -c "
+        echo '📊 Generating dataset...'
+        python3 datasetGeneration/generate_dataset.py &&
+        python3 datasetGeneration/split_data.py &&
+        python3 datasetGeneration/create_masterfile.py &&
+        python3 datasetGeneration/add_streaming_columns.py &&
+        echo '✅ Dataset preprocessing complete'
+      "
+    volumes:
+      - ../datasetGeneration:/app/datasetGeneration
+      - ..:/app
+    networks:
+      - targeting-network
+    profiles:
+      - init
+
+  # ==========================================================================
+  # MODEL TRAINING (runs once on start)
+  # ==========================================================================
+
+  trainer:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.pipeline
+    container_name: targeting-trainer
+    command: python3 -u carLoanPredictor/init_car_trainer.py
+    volumes:
+      - ..:/app
+    networks:
+      - targeting-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    profiles:
+      - init
+
+  redis-loader:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.pipeline
+    container_name: targeting-redis-loader
+    command: python3 -u dataManager/load_csvs_to_redis.py --force
+    volumes:
+      - ..:/app
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - targeting-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    profiles:
+      - init
+
+  # ==========================================================================
+  # PIPELINE NODES
+  # ==========================================================================
+
+  data-updater:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.pipeline
+    container_name: targeting-data-updater
+    command: python3 -u dataUpdater/run_detector_publisher.py
+    ports:
+      - "8002:8002"
+    volumes:
+      - ..:/app
+    environment:
+      - NATS_URI=nats://nats:4222
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - targeting-network
+    depends_on:
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    restart: unless-stopped
+
+  car-predictor:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.pipeline
+    container_name: targeting-car-predictor
+    command: python3 -u carLoanPredictor/run_predictor.py
+    ports:
+      - "8005:8005"
+    volumes:
+      - ..:/app
+    environment:
+      - NATS_URI=nats://nats:4222
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - targeting-network
+    depends_on:
+      - data-updater
+    restart: unless-stopped
+
+  car-feedback:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.pipeline
+    container_name: targeting-car-feedback
+    command: python3 -u carLoanFeedback/run_feedback.py
+    ports:
+      - "8006:8006"
+    volumes:
+      - ..:/app
+    environment:
+      - NATS_URI=nats://nats:4222
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - targeting-network
+    depends_on:
+      - car-predictor
+    restart: unless-stopped
+
+  oracle:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.pipeline
+    container_name: targeting-oracle
+    command: python3 -u oracle/run_feedback.py
+    ports:
+      - "8104:8004"
+    volumes:
+      - ..:/app
+    environment:
+      - NATS_URI=nats://nats:4222
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - targeting-network
+    depends_on:
+      - car-predictor
+    restart: unless-stopped
+
+  lead-publisher:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.pipeline
+    container_name: targeting-lead-publisher
+    command: python3 -u leadPublisher/run_publisher.py
+    ports:
+      - "8003:8003"
+    volumes:
+      - ..:/app
+    environment:
+      - NATS_URI=nats://nats:4222
+    networks:
+      - targeting-network
+    depends_on:
+      - data-updater
+    restart: unless-stopped
+
+  transaction-publisher:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.pipeline
+    container_name: targeting-transaction-publisher
+    command: python3 -u transactionPublisher/run_publisher.py
+    ports:
+      - "8001:8001"
+    volumes:
+      - ..:/app
+    environment:
+      - NATS_URI=nats://nats:4222
+    networks:
+      - targeting-network
+    depends_on:
+      - data-updater
+    restart: unless-stopped
+
+  # ==========================================================================
+  # FLASK BACKEND (API for Frontend)
+  # ==========================================================================
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.pipeline
+    container_name: targeting-backend
+    command: python3 -u Backend/app.py
+    ports:
+      - "5001:5000"
+    volumes:
+      - ..:/app
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NATS_URI=nats://nats:4222
+    networks:
+      - targeting-network
+    depends_on:
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  targeting-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  prometheus-data:
+  grafana-data:

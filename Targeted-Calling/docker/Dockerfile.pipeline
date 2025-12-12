@@ -1,0 +1,25 @@
+# Python 3.11 slim image for Targeted-Calling Pipeline
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python dependencies
+COPY requirements-docker.txt .
+RUN pip install --no-cache-dir -r requirements-docker.txt
+
+# Copy the entire project
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/Persistence /app/reports
+
+# Default command (overridden in docker-compose)
+CMD ["python3", "-u", "-c", "print('Targeted-Calling pipeline node ready')"]
