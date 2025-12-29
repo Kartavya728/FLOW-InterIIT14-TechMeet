@@ -1,0 +1,53 @@
+CALL TRANSCRIPT - CALL-002
+Customer: Priya Sharma (CUST-5678)
+Product: Mutual Funds
+Date: 2025-12-06 11:15:00
+Duration: 6 minutes
+
+---
+
+Agent: Hello, is this Ms. Priya Sharma?
+
+Priya: Yes, speaking.
+
+Agent: Hi Ms. Sharma, this is Neha from ABC Financial Services. I'm calling about our mutual fund investment opportunities. Do you have a few minutes to talk?
+
+Priya: Sure, I have some time.
+
+Agent: Great! I understand you might be interested in starting a Systematic Investment Plan. Is that correct?
+
+Priya: Yes, I'm thinking about it. I'm new to investing, so I'm still learning about mutual funds.
+
+Agent: That's absolutely fine! Starting with SIP is actually a great way for first-time investors. How much are you thinking of investing monthly?
+
+Priya: I can manage around ₹10,000 per month. I want to invest for the long term, maybe 5 to 10 years.
+
+Agent: Excellent! With that time horizon, you have good potential for wealth creation. Based on your moderate risk appetite, I'd recommend a balanced fund that invests in both equity and debt.
+
+Priya: Hmm, but I'm concerned about market volatility. What if the market crashes?
+
+Agent: That's a valid concern. Actually, SIPs help mitigate that risk through something called rupee cost averaging. When markets are down, you buy more units, and when they're up, you buy fewer units. Over 5-10 years, this tends to smooth out volatility.
+
+Priya: I see. What about exit loads? I've heard there are charges when you withdraw money.
+
+Agent: Yes, most equity mutual funds have an exit load of about 1% if you redeem within the first year. After that, there's no exit load. This is actually designed to encourage long-term investing.
+
+Priya: And what about taxes? How are the returns taxed?
+
+Agent: For equity mutual funds, long-term capital gains above ₹1 lakh per year are taxed at 10%. Short-term gains are taxed at 15%. For debt funds, the taxation is slightly different. I can send you a detailed document explaining all this.
+
+Priya: Yes, please do. I'd also like to know more about the fund manager's track record.
+
+Agent: Absolutely! The funds I'm recommending have consistently performed well over the past 5-10 years. I'll include the fund manager's profile and historical performance data in the information pack.
+
+Priya: Okay. I think I need to go through all this information before making a decision.
+
+Agent: Of course, that's totally understandable. Take your time to review everything. I'll send you the complete mutual fund brochure and we can schedule a follow-up call next week. How does that sound?
+
+Priya: That sounds good. Thank you for explaining everything.
+
+Agent: You're welcome, Ms. Sharma! I'll send the information to your email right away. Have a great day!
+
+Priya: Thank you. You too!
+
+--- END OF TRANSCRIPT ---

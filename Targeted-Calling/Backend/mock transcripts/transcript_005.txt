@@ -1,0 +1,67 @@
+CALL TRANSCRIPT - CALL-005
+Customer: Vikram Singh (CUST-7890)
+Product: Gold Loan
+Date: 2025-12-06 09:30:00
+Duration: 9 minutes
+
+---
+
+Agent: Good morning, Mr. Singh. This is Arjun from ABC Bank calling.
+
+Vikram: Good morning.
+
+Agent: I hope I'm not disturbing you. I'm calling regarding our gold loan services. Do you have a moment?
+
+Vikram: Yes, actually, your timing is perfect. I was just thinking about this. I need funds urgently for my business.
+
+Agent: I'm glad I could reach you at the right time! How much funding are you looking for?
+
+Vikram: I have gold ornaments worth around ₹8 lakhs. How much can I get against that?
+
+Agent: Excellent! We typically offer up to 75% of the gold's market value as a loan. So for ₹8 lakhs worth of gold, you could get approximately ₹6 lakhs. The exact amount will be determined after our certified valuator assesses the gold.
+
+Vikram: That would work for me. What's the interest rate?
+
+Agent: Our gold loan interest rates start from 9.5% per annum. The rate can vary slightly based on the loan amount and tenure.
+
+Vikram: Okay. How quickly can you process this? I need the money urgently for working capital.
+
+Agent: We understand the urgency. For gold loans, we have an express processing facility. If you can visit our branch with your gold, we can complete the valuation and disburse the loan on the same day - usually within 3-4 hours.
+
+Vikram: Same day? That's great! But I'm concerned about the safety of my gold. Where will it be stored?
+
+Agent: That's a very valid concern. Your gold will be stored in our bank's highly secure vault with 24/7 CCTV surveillance and advanced security systems. We also have insurance coverage for all pledged gold. You'll get a detailed receipt listing all items.
+
+Vikram: That's reassuring. What's the loan tenure, and can I repay early?
+
+Agent: The standard tenure ranges from 6 to 36 months. However, you can repay anytime without any prepayment charges. Many of our business customers repay within a year once their working capital needs are met.
+
+Vikram: Perfect, I'm planning to repay within 12 months once my business cash flow improves.
+
+Agent: That sounds like a solid plan. One more thing - we offer both bullet repayment and EMI options. Which would you prefer?
+
+Vikram: What's the difference?
+
+Agent: With bullet repayment, you only pay the interest monthly and repay the principal at the end. With EMI, you pay both principal and interest every month. For business purposes, many prefer bullet payment as it's easier on monthly cash flow.
+
+Vikram: Yes, bullet repayment sounds better for me.
+
+Agent: Great choice! Now, shall I schedule a gold valuation appointment for you? We can do it as early as tomorrow morning if you're available.
+
+Vikram: Tomorrow works. What time?
+
+Agent: How about 10 AM at our main branch?
+
+Vikram: Perfect. I'll be there.
+
+Agent: Wonderful! Please bring your gold ornaments, ID proof, address proof, and business registration documents. I'll send you a confirmation message with all the details and required documents list.
+
+Vikram: Okay, thank you so much. This has been very helpful.
+
+Agent: You're most welcome, Mr. Singh! I'll see you tomorrow. If you have any questions in the meantime, feel free to call me directly.
+
+Vikram: Will do. Thanks again!
+
+Agent: My pleasure. Have a great day!
+
+--- END OF TRANSCRIPT ---

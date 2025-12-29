@@ -1,0 +1,25 @@
+{
+  "call_id": "CALL-001",
+  "customer_id": "CUST-1234",
+  "customer_name": "Rajesh Kumar",
+  "product_type": "car loan",
+  "timestamp": "2025-12-06T10:30:00",
+  "call_duration": 420,
+  "user_response": "HIGH",
+  "willingness_score": 85,
+  "main_points": [
+    "Customer is interested in purchasing a sedan worth ₹12 lakhs",
+    "Looking for competitive interest rates",
+    "Prefers flexible EMI options",
+    "Has stable monthly income of ₹80,000"
+  ],
+  "customer_doubts": [
+    "Processing time and documentation requirements",
+    "Prepayment charges and penalties",
+    "Insurance bundling options"
+  ],
+  "agent_notes": "Customer seems very interested, follow up with detailed loan proposal",
+  "call_outcome": "INTERESTED",
+  "next_action": "Send loan proposal within 24 hours",
+  "transcript_file": "transcript_001.txt"
+}

@@ -1,0 +1,148 @@
+{
+  "CUST_002879": {
+    "call_id": "CALL_CUST_002879_20251207035959",
+    "customer_id": "CUST_002879",
+    "customer_name": "Rahul Sharma",
+    "product_type": "car loan",
+    "timestamp": "2025-12-07T03:38:55.901611",
+    "call_duration": 10,
+    "user_response": "LOW",
+    "willingness_score": 10,
+    "main_points": [
+      "Customer is not interested in a new car loan",
+      "Call was brief",
+      "No further questions were asked by the customer"
+    ],
+    "customer_doubts": [],
+    "agent_notes": "Customer declined the offer immediately.",
+    "call_outcome": "NOT_INTERESTED",
+    "next_action": "No further action required",
+    "transcript_file": "CALL_CUST_002879_20251207035959_transcript.txt"
+  },
+  "CUST_002878": {
+    "call_id": "CALL_CUST_002878_20251207040142",
+    "customer_id": "CUST_002878",
+    "customer_name": "Rajesh Kumar",
+    "product_type": "car loan",
+    "timestamp": "2025-12-07T03:38:55.901611",
+    "call_duration": 10,
+    "user_response": "LOW",
+    "willingness_score": 10,
+    "main_points": [
+      "Customer is not interested in a new car loan",
+      "Call was brief",
+      "No further questions were asked"
+    ],
+    "customer_doubts": [],
+    "agent_notes": "Customer quickly expressed disinterest and ended the call.",
+    "call_outcome": "NOT_INTERESTED",
+    "next_action": "No further action required",
+    "transcript_file": "CALL_CUST_002878_20251207040142_transcript.txt"
+  },
+  "CUST_002858": {
+    "call_id": "CALL_CUST_002858_20251207040243",
+    "customer_id": "CUST_002858",
+    "customer_name": "Rahul Sharma",
+    "product_type": "car loan",
+    "timestamp": "2025-12-07T03:38:55.901611",
+    "call_duration": 10,
+    "user_response": "LOW",
+    "willingness_score": 10,
+    "main_points": [
+      "Customer is not interested in a new car loan.",
+      "Call was brief with no detailed discussion.",
+      "Customer ended the call quickly."
+    ],
+    "customer_doubts": [],
+    "agent_notes": "Customer showed no interest in the product.",
+    "call_outcome": "NOT_INTERESTED",
+    "next_action": "No further action required.",
+    "transcript_file": "CALL_CUST_002858_20251207040243_transcript.txt"
+  },
+  "CUST_000282": {
+    "call_id": "CALL_CUST_000282_20251207155153",
+    "customer_id": "CUST_000282",
+    "customer_name": "Rajesh Kumar",
+    "product_type": "car loan",
+    "timestamp": "2025-12-07T17:48:16.606796",
+    "call_duration": 120,
+    "user_response": "HIGH",
+    "willingness_score": 85,
+    "main_points": [
+      "Interest rate options",
+      "Loan tenure flexibility",
+      "Eligibility criteria"
+    ],
+    "customer_doubts": [
+      "What is the minimum credit score required?",
+      "Are there any prepayment penalties?"
+    ],
+    "agent_notes": "Customer is very interested in the loan options and has specific questions about eligibility.",
+    "call_outcome": "INTERESTED",
+    "next_action": "Schedule a follow-up meeting to discuss loan details",
+    "transcript_file": "CALL_CUST_000282_20251207155153_transcript.txt"
+  },
+  "CUST_000242": {
+    "call_id": "CALL_CUST_000242_20251207155159",
+    "customer_id": "CUST_000242",
+    "customer_name": "Rajesh Kumar",
+    "product_type": "car loan",
+    "timestamp": "2025-12-07T17:49:23.520500",
+    "call_duration": 30,
+    "user_response": "LOW",
+    "willingness_score": 10,
+    "main_points": [
+      "Customer expressed no interest in taking a loan.",
+      "Agent introduced himself and the purpose of the call.",
+      "Agent offered to share options tailored to the customer's needs."
+    ],
+    "customer_doubts": [],
+    "agent_notes": "Customer was not receptive to the loan offer and ended the call quickly.",
+    "call_outcome": "NOT_INTERESTED",
+    "next_action": "No further action required; customer not interested.",
+    "transcript_file": "CALL_CUST_000242_20251207155159_transcript.txt"
+  },
+  "CUST_000241": {
+    "call_id": "CALL_CUST_000241_20251207160301",
+    "customer_id": "CUST_000241",
+    "customer_name": "Rahul Sharma",
+    "product_type": "car loan",
+    "timestamp": "2025-12-07T17:49:23.520500",
+    "call_duration": 30,
+    "user_response": "LOW",
+    "willingness_score": 10,
+    "main_points": [
+      "Customer was contacted regarding a car loan application.",
+      "Customer expressed a lack of interest in taking any loan.",
+      "Agent offered to share options tailored to the customer's needs."
+    ],
+    "customer_doubts": [],
+    "agent_notes": "Customer was not interested in the loan product at this time.",
+    "call_outcome": "NOT_INTERESTED",
+    "next_action": "No further action required; customer may be contacted in the future.",
+    "transcript_file": "CALL_CUST_000241_20251207160301_transcript.txt"
+  },
+  "CUST_000284": {
+    "call_id": "CALL_CUST_000284_20251207160351",
+    "customer_id": "CUST_000284",
+    "customer_name": "Rahul Sharma",
+    "product_type": "car loan",
+    "timestamp": "2025-12-07T17:48:16.606796",
+    "call_duration": 180,
+    "user_response": "HIGH",
+    "willingness_score": 85,
+    "main_points": [
+      "Interest in low-interest rates",
+      "Inquiry about loan tenure options",
+      "Request for eligibility criteria"
+    ],
+    "customer_doubts": [
+      "What documents are required?",
+      "How long does the approval process take?"
+    ],
+    "agent_notes": "Customer seems very interested and asks relevant questions.",
+    "call_outcome": "INTERESTED",
+    "next_action": "Schedule a follow-up meeting to discuss details",
+    "transcript_file": "CALL_CUST_000284_20251207160351_transcript.txt"
+  }
+}

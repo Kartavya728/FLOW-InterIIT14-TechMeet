@@ -1,0 +1,42 @@
+# Core Streaming Framework
+pathway>=0.18.0
+nats-py>=2.9.0
+
+# Data Science
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.11.0
+
+# Machine Learning
+scikit-learn>=1.3.0
+
+# Redis State Management
+redis>=5.0.0
+
+# Visualization
+matplotlib>=3.7.0
+
+# Date/Time
+python-dateutil>=2.8.0
+pytz>=2024.1
+
+# Metrics & Monitoring
+prometheus-client>=0.16.0
+psutil>=5.9.0
+
+# HTTP Requests
+requests>=2.31.0
+
+# Flask Backend
+flask>=2.3.0
+flask-socketio>=5.3.0
+flask-cors>=4.0.0
+python-socketio>=5.10.0
+eventlet>=0.35.0
+
+# AI/OpenAI
+openai>=1.0.0
+
+# Data Generation (for dataset preprocessing)
+faker>=20.0.0
+iterative-stratification>=0.1.7

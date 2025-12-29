@@ -1,0 +1,25 @@
+{
+    "call_id": "CALL-004",
+    "customer_id": "CUST-3456",
+    "customer_name": "Sneha Reddy",
+    "product_type": "car loan",
+    "timestamp": "2025-12-06T16:20:00",
+    "call_duration": 300,
+    "user_response": "LOW",
+    "willingness_score": 35,
+    "main_points": [
+        "Not immediately planning to buy a car",
+        "May consider in 6-8 months",
+        "Budget constraints currently",
+        "Exploring options for pre-owned vehicles"
+    ],
+    "customer_doubts": [
+        "Loan eligibility for pre-owned cars",
+        "Interest rate differences between new and used cars",
+        "Minimum down payment requirements"
+    ],
+    "agent_notes": "Not interested right now, can follow up after 6 months",
+    "call_outcome": "NOT_INTERESTED",
+    "next_action": "Add to follow-up list for Q2 2026",
+    "transcript_file": "transcript_004.txt"
+}

@@ -1,0 +1,25 @@
+{
+    "call_id": "CALL-003",
+    "customer_id": "CUST-9012",
+    "customer_name": "Amit Patel",
+    "product_type": "nifty",
+    "timestamp": "2025-12-06T14:45:00",
+    "call_duration": 480,
+    "user_response": "HIGH",
+    "willingness_score": 90,
+    "main_points": [
+        "Experienced investor interested in Nifty 50 index funds",
+        "Looking to invest lump sum amount of ₹5 lakhs",
+        "Understands market risks and volatility",
+        "Has existing portfolio in equity and debt"
+    ],
+    "customer_doubts": [
+        "Comparison with direct equity investment",
+        "Expense ratio and tracking error",
+        "Dividend payout vs growth option"
+    ],
+    "agent_notes": "Customer is knowledgeable and ready to invest, send account opening forms",
+    "call_outcome": "READY_TO_INVEST",
+    "next_action": "Send KYC and account opening documents immediately",
+    "transcript_file": "transcript_003.txt"
+}

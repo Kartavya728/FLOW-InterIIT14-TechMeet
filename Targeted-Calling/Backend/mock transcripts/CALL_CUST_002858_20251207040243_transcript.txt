@@ -1,0 +1,5 @@
+AI: Hello. May I speak with customer? This is calling from the bank regarding your car loan application.
+User: I'm not the call interested in taking a new car loan.
+AI: Thank you.
+User: Bye bye.
+AI: Thank you for your time. Have a great day.

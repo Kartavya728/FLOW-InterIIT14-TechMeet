@@ -1,0 +1,26 @@
+{
+    "call_id": "CALL-002",
+    "customer_id": "CUST-5678",
+    "customer_name": "Priya Sharma",
+    "product_type": "mutual funds",
+    "timestamp": "2025-12-06T11:15:00",
+    "call_duration": 360,
+    "user_response": "MEDIUM",
+    "willingness_score": 65,
+    "main_points": [
+        "First-time investor looking for SIP options",
+        "Monthly investment capacity of ₹10,000",
+        "Investment horizon of 5-10 years",
+        "Risk appetite: Moderate"
+    ],
+    "customer_doubts": [
+        "Market volatility and risk factors",
+        "Exit load and redemption process",
+        "Tax implications on returns",
+        "Fund manager track record"
+    ],
+    "agent_notes": "Customer needs more information before deciding, schedule follow-up call",
+    "call_outcome": "NEEDS_INFO",
+    "next_action": "Send mutual fund brochure and schedule callback",
+    "transcript_file": "transcript_002.txt"
+}

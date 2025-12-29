@@ -1,0 +1,51 @@
+CALL TRANSCRIPT - CALL-001
+Customer: Rajesh Kumar (CUST-1234)
+Product: Car Loan
+Date: 2025-12-06 10:30:00
+Duration: 7 minutes
+
+---
+
+Agent: Good morning, Mr. Kumar. This is Rahul from ABC Bank. How are you doing today?
+
+Rajesh: Good morning. I'm doing well, thank you.
+
+Agent: Great! I'm calling regarding our car loan offerings. I understand you might be interested in purchasing a vehicle?
+
+Rajesh: Yes, actually. I've been looking at sedans in the ₹12 lakh range. What kind of interest rates do you offer?
+
+Agent: Excellent choice! For a car loan of ₹12 lakhs, we currently offer interest rates starting from 8.5% per annum for eligible customers. May I know your monthly income?
+
+Rajesh: My monthly income is around ₹80,000.
+
+Agent: Perfect! With your income profile, you would easily qualify for the loan. We also offer flexible EMI options ranging from 12 to 84 months.
+
+Rajesh: That sounds good. But I have some questions. How long does the processing take, and what documents do I need?
+
+Agent: Great question! The processing typically takes 3-5 business days. You'll need your ID proof, address proof, last 3 months' salary slips, and 6 months' bank statements. It's a pretty straightforward process.
+
+Rajesh: Okay. What about prepayment? Are there any charges if I want to repay the loan early?
+
+Agent: For the first 6 months, there's a nominal prepayment charge of 2%. After that, you can prepay without any charges. We encourage customers to close loans early if they can.
+
+Rajesh: I see. And what about insurance? Do I have to buy it from you?
+
+Agent: We do have tie-ups with leading insurance companies that offer competitive rates. However, it's not mandatory - you're free to choose your own insurance provider. Though I must say, our bundled packages often work out to be more cost-effective.
+
+Rajesh: Alright, this all sounds quite interesting. I think I'd like to proceed with this.
+
+Agent: Wonderful! I'm very glad to hear that. What I'll do is send you a detailed loan proposal with all the terms and conditions via email within the next 24 hours. Would that work for you?
+
+Rajesh: Yes, that would be perfect. Please send it to rajesh.kumar@email.com.
+
+Agent: Noted. Is there anything else you'd like to know, Mr. Kumar?
+
+Rajesh: No, I think that covers everything for now. Thank you for your help.
+
+Agent: You're most welcome! Have a great day, and I'll send you the proposal shortly.
+
+Rajesh: Thank you. Bye.
+
+Agent: Goodbye!
+
+--- END OF TRANSCRIPT ---

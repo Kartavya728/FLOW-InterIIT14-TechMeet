@@ -1,0 +1,26 @@
+{
+    "call_id": "CALL-005",
+    "customer_id": "CUST-7890",
+    "customer_name": "Vikram Singh",
+    "product_type": "others",
+    "timestamp": "2025-12-06T09:30:00",
+    "call_duration": 540,
+    "user_response": "HIGH",
+    "willingness_score": 88,
+    "main_points": [
+        "Interested in gold loan for business expansion",
+        "Has gold ornaments worth approximately ₹8 lakhs",
+        "Needs quick disbursal for working capital",
+        "Plans to repay within 12 months"
+    ],
+    "customer_doubts": [
+        "Gold valuation process",
+        "Storage and safety of pledged gold",
+        "Loan-to-value ratio offered",
+        "Foreclosure charges"
+    ],
+    "agent_notes": "Urgent requirement, fast-track the application process",
+    "call_outcome": "URGENT_REQUIREMENT",
+    "next_action": "Schedule gold valuation appointment within 48 hours",
+    "transcript_file": "transcript_005.txt"
+}

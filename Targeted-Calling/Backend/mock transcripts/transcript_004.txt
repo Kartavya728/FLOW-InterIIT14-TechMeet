@@ -1,0 +1,49 @@
+CALL TRANSCRIPT - CALL-004
+Customer: Sneha Reddy (CUST-3456)
+Product: Car Loan
+Date: 2025-12-06 16:20:00
+Duration: 5 minutes
+
+---
+
+Agent: Good evening, is this Ms. Sneha Reddy?
+
+Sneha: Yes, who's calling?
+
+Agent: Hi Ms. Reddy, this is Priya from ABC Bank. I'm calling about our car loan products. Is this a good time?
+
+Sneha: Um, okay. But I'm not really looking for a car loan right now.
+
+Agent: I understand. Are you planning to purchase a vehicle in the near future?
+
+Sneha: Not immediately. Maybe in 6-8 months, but I'm not sure yet.
+
+Agent: No problem at all! It's actually good to know about your options in advance. When you do decide, are you looking at new cars or pre-owned vehicles?
+
+Sneha: Probably pre-owned. New cars are too expensive for me right now.
+
+Agent: That makes sense. Just so you know, we do offer loans for pre-owned cars as well. The interest rates are slightly higher than new cars, but it's definitely doable.
+
+Sneha: What's the rate difference?
+
+Agent: For new cars, rates start from 8.5%, and for pre-owned cars, they start from around 10.5%. The exact rate depends on the car's age and your credit profile.
+
+Sneha: Hmm, okay. What about the down payment?
+
+Agent: For pre-owned cars, we typically finance up to 80% of the car's value, so you'd need a 20% down payment. For example, if the car costs ₹5 lakhs, you'd pay ₹1 lakh upfront.
+
+Sneha: I see. That's helpful to know, but as I mentioned, I'm not in a position to buy right now. Maybe later this year or early next year.
+
+Agent: Absolutely understood, Ms. Reddy. Would it be okay if I keep your details and follow up with you after 6 months?
+
+Sneha: Sure, that's fine.
+
+Agent: Perfect! In the meantime, if you have any questions about car loans or pre-owned vehicle financing, feel free to reach out. Is there anything else you'd like to know today?
+
+Sneha: No, that's all. Thanks.
+
+Agent: You're welcome! Have a great evening!
+
+Sneha: You too. Bye.
+
+--- END OF TRANSCRIPT ---

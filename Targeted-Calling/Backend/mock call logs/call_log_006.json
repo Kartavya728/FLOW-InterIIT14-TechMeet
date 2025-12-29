@@ -1,0 +1,26 @@
+{
+    "call_id": "CALL-006",
+    "customer_id": "CUST-2468",
+    "customer_name": "Meera Iyer",
+    "product_type": "mutual funds",
+    "timestamp": "2025-12-06T13:00:00",
+    "call_duration": 390,
+    "user_response": "MEDIUM",
+    "willingness_score": 70,
+    "main_points": [
+        "Looking to diversify existing investment portfolio",
+        "Monthly SIP of ₹15,000 planned",
+        "Prefers balanced funds with debt-equity mix",
+        "Investment goal: Child's education in 8 years"
+    ],
+    "customer_doubts": [
+        "Best fund houses for balanced funds",
+        "Historical returns comparison",
+        "Switching between fund schemes",
+        "Auto-debit setup process"
+    ],
+    "agent_notes": "Customer is comparing options, provide detailed fund comparison",
+    "call_outcome": "COMPARING_OPTIONS",
+    "next_action": "Send fund comparison report and performance analysis",
+    "transcript_file": "transcript_006.txt"
+}

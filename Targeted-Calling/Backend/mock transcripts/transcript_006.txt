@@ -1,0 +1,65 @@
+CALL TRANSCRIPT - CALL-006
+Customer: Meera Iyer (CUST-2468)
+Product: Mutual Funds (Balanced)
+Date: 2025-12-06 13:00:00
+Duration: 6.5 minutes
+
+---
+
+Agent: Hello, may I speak with Ms. Meera Iyer?
+
+Meera: Yes, this is Meera.
+
+Agent: Hi Ms. Iyer, this is Kavya from ABC Financial Services. I'm calling about our mutual fund investment options. Is this a good time?
+
+Meera: Yes, I can talk. I've actually been researching mutual funds lately.
+
+Agent: Perfect! What kind of investments are you looking at?
+
+Meera: I want to diversify my portfolio. I currently have some fixed deposits and PPF, but I'd like to add mutual funds. I'm thinking of starting a SIP of around ₹15,000 per month.
+
+Agent: That's a great investment amount! What's your investment goal, if I may ask?
+
+Meera: I'm investing for my daughter's education. She's 10 years old, so I have about 8 years before college.
+
+Agent: Excellent! With an 8-year horizon, you have good time for wealth creation. Have you considered your risk appetite?
+
+Meera: I don't want to take too much risk, but I understand some risk is necessary for good returns. Maybe something balanced?
+
+Agent: Based on what you've shared, I'd recommend balanced advantage funds or hybrid funds. These invest in both equity and debt, giving you growth potential while managing risk.
+
+Meera: That sounds right. Which fund houses would you recommend?
+
+Agent: We work with all top fund houses - HDFC, ICICI Prudential, SBI, Aditya Birla, and others. I can send you a comparison of the top 5 balanced funds showing their historical returns and risk metrics.
+
+Meera: Yes, please do that. I'd like to see how they've performed over the last 5-10 years.
+
+Agent: Absolutely! Generally, good balanced funds have delivered 10-12% annualized returns over 10 years. Of course, past performance doesn't guarantee future returns.
+
+Meera: I understand. One question - can I switch between different fund schemes later if needed?
+
+Agent: Yes, you can! Switching is allowed, though it's treated as redemption and fresh purchase for tax purposes. However, within the same fund house, some funds offer free switches between their schemes.
+
+Meera: Good to know. And how does the auto-debit work? I want to make sure the SIP runs automatically.
+
+Agent: It's very simple. You'll set up an auto-debit mandate with your bank. On your chosen date each month - say the 5th or 10th - the amount is automatically debited from your account and invested. You'll get a confirmation email each time.
+
+Meera: That's convenient. What if I need to pause or stop the SIP temporarily?
+
+Agent: You can pause for up to 3 months or stop it completely anytime. There's no penalty for that. You're in complete control.
+
+Meera: Perfect. Can you send me the fund comparison and all the details?
+
+Agent: Certainly! I'll email you a comprehensive report with fund comparisons, performance analysis, and the application forms. After you review, we can schedule another call to address any questions.
+
+Meera: That would be great. My email is meera.iyer@email.com.
+
+Agent: Got it. You'll receive the information within the next 2 hours. Is there anything else you'd like to know right now?
+
+Meera: No, I think that covers everything. Thank you for your help!
+
+Agent: You're very welcome, Ms. Iyer! Looking forward to helping you with your investment journey. Have a wonderful day!
+
+Meera: Thank you, you too!
+
+--- END OF TRANSCRIPT ---

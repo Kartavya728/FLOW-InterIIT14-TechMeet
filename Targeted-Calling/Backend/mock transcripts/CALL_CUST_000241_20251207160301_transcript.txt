@@ -1,0 +1,6 @@
+AI: Hello. May I speak with customer? This is calling from the bank regarding your car loan application.
+User: I was
+AI: Thank you so much for taking the call. My name is Yornane, and I'm your loan adviser here to assist you with your auto loan inquiry. I noticed you've expressed interest in financing vehicle. So I'd like to share some options tailored to your needs. Does that sound good?
+User: I'm not interested to take any loan.
+User: Right. Right.
+AI: Thank you. Thank you for your time. Have a great day. Feel free to reach out. Thank you for your time.
