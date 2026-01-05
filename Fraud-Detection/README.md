@@ -1,503 +1,508 @@
-<p align="center">
-  <h1 align="center"> FLOW: Fraud and load optimization workbench</h1>
-  <p align="center">
-    <strong>A production-grade, streaming data platform for real-time fraud detection and intelligent customer targeting in banking</strong>
-  </p>
-  <p align="center">
-    <em>Built with Pathway · NATS JetStream · Online ML · Docker · React</em>
-  </p>
-  <p align="center">
-    <a href="#-fraud-detection-pipeline">Fraud Detection</a> · 
-    <a href="#-targeted-calling-pipeline">Targeted Calling</a> · 
-    <a href="#-quick-start">Quick Start</a> · 
-    <a href="#-architecture">Architecture</a> · 
-    <a href="#-monitoring--observability">Monitoring</a>
-  </p>
-</p>
+# 🛡️ Real-Time Fraud Detection Pipeline
+
+A **near real-time credit card fraud detection system** built on [Pathway](https://pathway.com/) for stream processing, featuring **online machine learning** with incremental model updates, a **3-tier hybrid detection engine** (rules + ML), **human-in-the-loop feedback**, and a full **observability stack** with Prometheus, Grafana, and latency tracking.
+
+> *Originally developed as part of Inter-IIT Tech Meet 14.0 — Pathway Problem Statement.*
 
 ---
 
-## 📌 Summary
+## ✨ Key Features
 
-This repository contains a **unified real-time banking analytics platform** composed of two independent, fully containerized streaming pipelines:
-
-| Pipeline | Purpose | Core ML Technique | Key Output |
-|---|---|---|---|
-| **[Fraud Detection](https://github.com/Meh-Mehul/Fraud-Detection-Pipeline)** | Real-time loan fraud detection with sub-5ms latency | Hoeffding Adaptive Tree ensemble (online learning via [River](https://riverml.xyz/)) | Tiered fraud alerts, PDF investigation reports |
-| **[Targeted Calling](./Targeted-Calling/)** | Intelligent lead scoring and product recommendation for banking products | Online Gaussian Mixture Model (custom implementation) | Qualified leads, AI-generated call transcripts, cluster-level PDF reports |
-
-Both pipelines ingest streaming transaction data via **NATS JetStream**, process it through **Pathway** dataflow graphs, maintain state in **Redis**, and expose production-grade **Prometheus + Grafana** dashboards — all orchestrated through Docker Compose with a single-command deployment.
-
-> **Note**: This project was originally built for **Inter IIT Tech Meet 14.0** (High Prep Pathway Problem Statement).
-
----
-
-## ✨ Key Highlights
-
-- **End-to-End Streaming Architecture** — No batch jobs. Transactions are processed in real time from ingestion to alert/recommendation with millisecond-level latency.
-- **Online Machine Learning** — Models continuously learn from feedback without retraining on full datasets. The Fraud Detection pipeline uses Hoeffding Adaptive Trees; the Targeted Calling pipeline uses a custom Online GMM with incremental cluster updates.
-- **Human-in-the-Loop Feedback** — Both pipelines support closed-loop learning: fraud analysts can confirm/reject alerts, and customer call outcomes feed back into the GMM model.
-- **Production-Grade Observability** — Prometheus metrics, Grafana dashboards, alerting rules, and health checks on every component.
-- **Fully Containerized** — 15+ Docker containers across two isolated networks with automated orchestration scripts.
-- **AI-Powered Interactions** — VAPI-based automated customer calls with GPT-4 generated scripts, call transcript analysis via OpenAI, and LLM-powered financial product recommendation reports.
+| Feature | Description |
+|---|---|
+| **Online / Incremental ML** | Uses [River](https://riverml.xyz/) (Hoeffding Adaptive Trees) for continuous model training — the model learns from every new transaction without retraining from scratch |
+| **3-Tier Hybrid Detection** | Combines configurable rule-based checks (Tier 1: critical signals, Tier 2: score-based, Tier 3: ML-based) with dual-model ensemble ML scoring |
+| **Human-in-the-Loop Feedback** | Fraud analysts review flagged transactions via a web UI; their verdicts are fed back to retrain the model in real time |
+| **Real-Time Feature Store (Redis)** | Customer, merchant, and category profiles are maintained in Redis with running statistics (mean, std dev, fraud rate) updated atomically per transaction |
+| **End-to-End Latency Tracking** | Millisecond-precision timestamps propagate through every stage (Publisher → Detector → Report) for full pipeline latency visibility |
+| **Prometheus + Grafana Monitoring** | 6-panel Grafana dashboard tracking pipeline latency, model F1/precision/recall, alert rates, training progress, and model weight drift |
+| **False Negative Detection** | A dedicated collector stores transactions the system marked "legitimate" for human review — catching missed frauds |
+| **Auto-Restart on High Latency** | A latency monitor queries Prometheus and auto-restarts all pipeline components if p50 latency exceeds a configurable threshold |
 
 ---
 
-## 🏗 Architecture
+## 🏗️ Architecture
+
+![Architecture Diagram](./architecture.jpg)
+
+The pipeline consists of **6 concurrent processes** communicating over NATS topics:
 
 ```
-┌───────────────────────────────────────────────────────────────────────────────────────┐
-│                          REAL-TIME BANKING ANALYTICS PLATFORM                          │
-├───────────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                       │
-│  ┌────────────────────────────────┐       ┌────────────────────────────────────────┐  │
-│  │    FRAUD DETECTION PIPELINE    │       │      TARGETED CALLING PIPELINE         │  │
-│  │                                │       │                                        │  │
-│  │  fraudTrain.csv                │       │  Synthetic Customer Data (12.5K)       │  │
-│  │       │                        │       │       │                                │  │
-│  │       ▼                        │       │       ▼                                │  │
-│  │  ┌──────────┐  NATS JetStream  │       │  ┌────────────────┐   NATS JetStream   │  │
-│  │  │Publisher  │──►fraud.txns     │       │  │Txn Publisher   │──►transactions     │  │
-│  │  └──────────┘  fraud.feedback  │       │  │Lead Publisher  │  .stream           │  │
-│  │       │                        │       │  └────────────────┘                    │  │
-│  │       ▼                        │       │       │                                │  │
-│  │  ┌──────────┐                  │       │       ▼                                │  │
-│  │  │Detector  │ HAT Ensemble     │       │  ┌────────────────┐                    │  │
-│  │  │(Pathway) │ + Rule Engine    │       │  │Data Updater    │ Customer 360       │  │
-│  │  └──────────┘                  │       │  │(Pathway)       │ Real-time Enrichment│  │
-│  │       │                        │       │  └────────────────┘                    │  │
-│  │       ├──► Stats Updater       │       │       │                                │  │
-│  │       ├──► Feedback Writer     │       │       ├──► Lead Dispatcher              │  │
-│  │       ├──► Report Generator    │       │       │    (Business Rules Engine)      │  │
-│  │       └──► Frontend (FastAPI)  │       │       │                                │  │
-│  │                                │       │       ▼                                │  │
-│  │  Infrastructure:               │       │  ┌────────────────┐                    │  │
-│  │  • Redis     :6379             │       │  │GMM Predictor   │ Online Clustering  │  │
-│  │  • NATS      :4222             │       │  │(Pathway)       │ + Mahalanobis Dist │  │
-│  │  • Grafana   :3000             │       │  └────────────────┘                    │  │
-│  │  • Prometheus:9090             │       │       │                                │  │
-│  │  • Frontend  :8000             │       │       ├──► Oracle (Rules Ground-Truth)  │  │
-│  │                                │       │       ├──► Feedback Node (GMM Updates)  │  │
-│  │                                │       │       ├──► Caller Node (VAPI + GPT-4)  │  │
-│  │                                │       │       └──► Backend API (Flask + WS)    │  │
-│  │                                │       │                                        │  │
-│  │                                │       │  Infrastructure:                       │  │
-│  │                                │       │  • Redis     :6380                     │  │
-│  │                                │       │  • NATS      :4223                     │  │
-│  │                                │       │  • Grafana   :3001                     │  │
-│  │                                │       │  • Prometheus:9095                     │  │
-│  │                                │       │  • Backend   :5001                     │  │
-│  └────────────────────────────────┘       └────────────────────────────────────────┘  │
-│                                                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────────────────┐  │
-│  │                      Unified React Dashboard  :5173                              │  │
-│  │          (Reports · Call Logs · Model Stats · Cluster Visualizations)             │  │
-│  └─────────────────────────────────────────────────────────────────────────────────┘  │
-│                                                                                       │
-└───────────────────────────────────────────────────────────────────────────────────────┘
+                           ┌──────────────────────┐
+                           │   fraudTrain.csv      │
+                           │   (Kaggle Dataset)    │
+                           └──────┬───────┬────────┘
+                                  │       │
+                    ┌─────────────┘       └──────────────┐
+                    ▼                                    ▼
+          ┌─────────────────┐                 ┌──────────────────┐
+          │  Detector Pub   │                 │  Feedback Pub    │
+          │ (no is_fraud)   │                 │ (with is_fraud)  │
+          └────────┬────────┘                 └────────┬─────────┘
+                   │ NATS: fraud.transactions          │ NATS: fraud.feedback
+                   ▼                                   ▼
+          ┌─────────────────┐                 ┌──────────────────┐
+          │    Detector      │                 │  Feedback Writer │
+          │  (ML + Rules)    │◄── model ──────│  (Online Trainer)│
+          │                  │── reads ──────►│                  │
+          └───┬──────┬───────┘    Redis       └──────────────────┘
+              │      │                              │  │
+    all results   alerts only                  updates stats
+              │      │                              │  │
+              ▼      ▼                              ▼  ▼
+     ┌────────┐ ┌───────────┐              ┌──────────────┐
+     │Negative│ │  Report   │              │    Redis      │
+     │Collect.│ │ Generator │              │ Feature Store │
+     └────────┘ │  (PDFs)   │              └──────────────┘
+                └─────┬─────┘
+                      │
+                      ▼
+              ┌──────────────┐        ┌───────────────────┐
+              │ fraud_reports│        │  Prometheus +      │
+              │   (PDFs)     │        │  Grafana Dashboard │
+              └──────┬───────┘        └───────────────────┘
+                     │
+                     ▼
+             ┌──────────────┐
+             │   Frontend   │
+             │ (FastAPI UI) │
+             │ :8000        │
+             └──────────────┘
+```
+
+### Data Flow Summary
+
+1. **Publisher** reads `fraudTrain.csv` and streams transactions to two NATS topics simultaneously:
+   - `fraud.transactions` — transactions **without** the `is_fraud` label (simulating real-world detection)
+   - `fraud.feedback` — transactions **with** the `is_fraud` label (ground truth for training)
+2. **Detector** consumes from `fraud.transactions`, enriches each transaction with Redis-stored customer/merchant/category profiles, runs it through the 3-tier detection engine, and publishes results to `fraud.results` and alerts to `fraud.alerts`
+3. **Report Generator** subscribes to `fraud.alerts` and generates bank-grade PDF investigation reports with decoded indicators, risk assessments, and investigation protocols
+4. **Feedback Writer** consumes from `fraud.feedback` and incrementally trains two River ML models (Hoeffding Adaptive Tree + StandardScaler pipeline and a standalone validator), while updating Redis stats atomically
+5. **Frontend** (FastAPI) serves a web UI for fraud analysts to review PDF reports, confirm/reject fraud, and review potential false negatives
+6. **Negative Collector** (optional) stores non-alert transactions for false negative review
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| Stream Processing | [Pathway](https://pathway.com/) | Real-time data processing engine with persistence and checkpointing |
+| Messaging | [NATS](https://nats.io/) (JetStream) | High-performance pub/sub message broker between pipeline components |
+| Machine Learning | [River](https://riverml.xyz/) | Online/incremental ML — `HoeffdingAdaptiveTreeClassifier` with `StandardScaler` pipeline |
+| Feature Store | [Redis](https://redis.io/) | In-memory store for customer profiles, merchant stats, and category risk scores |
+| Monitoring | [Prometheus](https://prometheus.io/) + [Grafana](https://grafana.com/) | Metrics collection, alerting, and 6-panel real-time dashboard |
+| Report Generation | [ReportLab](https://www.reportlab.com/) | Professional PDF fraud investigation reports |
+| Frontend | [FastAPI](https://fastapi.tiangolo.com/) | Human review web interface with Tailwind CSS |
+| Language | Python 3.11 | All components |
+| Containerization | Docker + Docker Compose | Redis, NATS, Prometheus, and Grafana services |
+
+---
+
+## 📁 Project Structure
+
+```
+Fraud-Detection-Pipeline/
+│
+├── publisher/                      # Transaction stream publishers
+│   ├── pub_common.py               # Combined publisher (detector + feedback streams)
+│   ├── pub_det.py                  # Standalone detector publisher (with latency timestamps)
+│   ├── pub_feed.py                 # Standalone feedback publisher (with is_fraud labels)
+│   └── common/                     # Publisher utilities
+│
+├── detector/                       # Fraud detection engine
+│   ├── detector_ronly.py           # Main detector — ML inference + 3-tier rule evaluation
+│   └── detector_stats_upd.py      # Stats updater node (subscribes to fraud.results)
+│
+├── feedback/                       # Online model training
+│   └── feedback_writer.py          # Incremental trainer — learns from ground truth labels
+│
+├── report/                         # PDF report generation
+│   └── pathway_nats_report.py      # Bank-grade PDF fraud reports with indicator decoding
+│
+├── frontend/                       # Human review interface
+│   └── main.py                     # FastAPI app — fraud alert queue + false negative review
+│
+├── shared/                         # Shared modules across all components
+│   ├── schema.py                   # Pathway schemas (TransactionSchema, FeedBackSchema)
+│   ├── model_store.py              # Thread-safe model save/load (pickle, atomic writes)
+│   ├── stats_store.py              # File-based stats store (used by pretrain.py)
+│   ├── redis_stats_store.py        # Redis-based stats store (used at runtime)
+│   ├── rules_loader.py             # JSON-driven fraud rules engine (3-tier evaluation)
+│   ├── fraud_rules.json            # Configurable detection rules, thresholds, and protocols
+│   └── metrics.py                  # Prometheus metrics — latency, alerts, F1, model weight delta
+│
+├── monitoring/                     # Observability configuration
+│   ├── prometheus.yml              # Prometheus scrape targets (4 pipeline components)
+│   └── grafana/                    # Grafana provisioning and dashboard JSON
+│       ├── provisioning/           # Auto-provisioned datasources
+│       └── dashboards/             # Pre-built 6-panel dashboard
+│
+├── tests/                          # Testing utilities
+│   └── inject_frauds.py            # Comprehensive fraud pattern injector (30+ patterns)
+│
+├── pathway_persistence/            # Runtime data (gitignored except pre-trained model)
+│   ├── ml_models.pkl               # Pre-trained River ML models
+│   ├── stats_store.json            # Pre-computed customer/merchant/category stats
+│   └── checkpoints_*/              # Pathway checkpoints (auto-generated)
+│
+├── fraud_reports/                  # Generated PDF reports (created at runtime)
+│
+├── pretrain.py                     # One-time pre-training script (balanced sampling)
+├── redis_manager.py                # Redis CLI tool (load/clear/export/inspect stats)
+├── health_check.py                 # System diagnostics (model, stats, NATS checks)
+├── latency_monitor.py              # Auto-restart monitor (queries Prometheus for latency)
+├── negative_collector.py           # Stores non-alert transactions for false negative review
+│
+├── run_detector.py                 # Entry point: starts the detector
+├── run_report.py                   # Entry point: starts the report generator
+├── run_feedback.py                 # Entry point: starts the feedback writer/trainer
+├── run_stats_updater.py            # Entry point: starts the stats updater
+├── run_negative_collector.py       # Entry point: starts the negative collector
+│
+├── clean.sh                        # Cleanup script (checkpoints, temp files, reports)
+├── Dockerfile                      # Container definition for the pipeline
+├── docker-compose.yml              # Base compose (app only)
+├── docker-compose-monitoring.yml   # Full stack: Redis + NATS + Prometheus + Grafana
+├── requirements.txt                # Python dependencies
+└── .github/workflows/ci-cd.yml     # GitHub Actions CI/CD pipeline
 ```
 
 ---
 
-## 🛡 Fraud Detection Pipeline
-
-> **[Full Documentation →](https://github.com/Meh-Mehul/Fraud-Detection-Pipeline)**
-
-### Overview
-
-A **real-time fraud detection system** that processes streaming loan transactions and flags suspicious activity with sub-5ms latency. The system uses a hybrid approach combining online ML models with a configurable rule engine.
-
-### ML Approach — Hoeffding Adaptive Tree Ensemble
-
-The detector uses an **ensemble of two Hoeffding Adaptive Tree classifiers** (from the [River](https://riverml.xyz/) online learning library), which natively handle concept drift and learn incrementally from each labeled transaction:
-
-```
-ML Score = (HAT_main.predict_proba[fraud] + HAT_validator.predict_proba[fraud]) / 2 × 100
-
-Alert Tiers:
-  Tier 1 (Critical) → Rule match OR ML Score ≥ 80%
-  Tier 2 (High)     → ML Score ≥ 50%
-  Tier 3 (Medium)   → ML Score ≥ 30%
-```
-
-**Feature Engineering** — 12 features combining raw transaction attributes with real-time statistical profiles:
-
-| Feature | Description | Source |
-|---|---|---|
-| `amt`, `z_amt`, `amt_ratio` | Transaction amount, Z-score normalized, ratio to average | Transaction + Redis customer profile |
-| `dist`, `z_dist` | Haversine distance to merchant, normalized | Transaction coordinates |
-| `merch_risk`, `cat_risk` | Merchant and category historical fraud rates | Redis merchant/category profiles |
-| `late_night`, `online` | Binary flags for high-risk temporal and categorical patterns | Rule engine configuration |
-| `fraud_history`, `n` | Customer's historical fraud count and total transactions | Redis customer profile |
-
-### Pipeline Nodes
-
-| Node | Role | Streaming Framework |
-|---|---|---|
-| **Publisher** | Streams transactions from CSV to NATS with timestamps for latency tracking | Python + NATS |
-| **Detector** | Real-time fraud inference (ML + rules), emits alerts and results | Pathway |
-| **Stats Updater** | Updates Redis customer/merchant/category profiles from results | Pathway |
-| **Feedback Writer** | Receives confirmed fraud labels, performs online model training | Pathway |
-| **Report Generator** | Generates PDF investigation reports for each alert | Pathway |
-| **Negative Collector** | Collects non-alerted transactions for false-negative review | Pathway |
-| **Frontend** | FastAPI web UI for fraud investigation and feedback submission | FastAPI + Jinja2 |
-
-### Performance
-
-| Metric | Value |
-|---|---|
-| **End-to-end latency** | 1–5 ms (p50) |
-| **Throughput** | 25+ TPS sustained |
-| **F1 Score** | ~85–90% after warm-up |
-| **Dataset** | [Kaggle Credit Card Fraud](https://www.kaggle.com/datasets/kartik2112/fraud-detection) (~1.3M transactions) |
-
----
-
-## 🛠 Technology Stack
-
-### Core Infrastructure
-
-| Technology | Role | Version |
-|---|---|---|
-| **[Pathway](https://pathway.com/)** | Streaming dataflow framework — real-time joins, aggregations, UDFs | ≥ 0.18.0 |
-| **[NATS JetStream](https://nats.io/)** | High-performance message broker — pub/sub with persistence | 2.10 |
-| **[Redis](https://redis.io/)** | In-memory state store — customer profiles, model data, statistics | 7 (Alpine) |
-| **[Docker Compose](https://docs.docker.com/compose/)** | Container orchestration — isolated networks, health checks | v2 |
-
-### Machine Learning
-
-| Technology | Role | Pipeline |
-|---|---|---|
-| **[River](https://riverml.xyz/)** | Online learning — Hoeffding Adaptive Trees, StandardScaler | Fraud Detection |
-| **scikit-learn** | Batch GMM initialization, preprocessing (StandardScaler, OrdinalEncoder) | Targeted Calling |
-| **NumPy / SciPy** | Mahalanobis distance, chi-squared thresholding, matrix operations | Targeted Calling |
-| **Custom `onlineGMMv1`** | Streaming GMM with cluster lifecycle management (merge, prune, exemplar tracking) | Targeted Calling |
-
-### AI / LLM Integration
-
-| Technology | Role |
-|---|---|
-| **OpenAI GPT-4 / GPT-4o-mini** | Call script generation, transcript analysis, financial report reasoning |
-| **VAPI** | Automated phone calls — voice AI with Deepgram TTS, call recording |
-| **Pathway xpack-llm** | LLM integration within Pathway dataflow graphs |
-
-### Web / Frontend
-
-| Technology | Role |
-|---|---|
-| **FastAPI + Jinja2** | Fraud Detection frontend (investigation UI) |
-| **Flask + Flask-SocketIO** | Targeted Calling backend API (REST + WebSocket) |
-| **React 18 + TypeScript** | Unified dashboard (Vite, Recharts, Radix UI, React Router) |
-
-### Monitoring
-
-| Technology | Role |
-|---|---|
-| **Prometheus** | Metrics collection — custom gauges, histograms, counters per node |
-| **Grafana** | Dashboard visualization — pre-provisioned with auto-refreshing panels |
-| **psutil** | System resource monitoring (memory, CPU) |
-
----
-
-## 🚀 Quick Start
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- **Docker & Docker Compose** (v2+)
-- **Node.js 18+** (for the React frontend)
-- **8 GB+ RAM** recommended (both pipelines run 15+ containers)
+- **Python 3.11+**
+- **Docker** and **Docker Compose** (for Redis, NATS, Prometheus, Grafana)
+- **Dataset**: Download `fraudTrain.csv` from [Kaggle — Fraud Detection](https://www.kaggle.com/datasets/kartik2112/fraud-detection?resource=download&select=fraudTrain.csv) and place it in the project root
 
-### One-Command Deployment
-
-```bash
-# Clone the repository
-git clone <repo-url>
-cd <repo-name>
-
-# Start both pipelines + frontend
-./start_all.sh
-
-# Quick restart (skip preprocessing, use existing models)
-./restart_all.sh
-
-# Stop everything
-./stop_all.sh
-```
-
-### Individual Pipeline Control
+### 1. Install Dependencies
 
 ```bash
-# Fraud Detection
-cd Fraud-Detection
-./pipeline.sh start      # Full start (pretrain + deploy)
-./pipeline.sh restart    # Quick restart (reuse model)
-./pipeline.sh stop
-./pipeline.sh status
-./pipeline.sh logs
-
-# Targeted Calling
-cd Targeted-Calling
-./pipeline.sh start      # Full start (dataset gen + training + deploy)
-./pipeline.sh restart    # Quick restart (reuse model)
-./pipeline.sh stop
-./pipeline.sh status
-./pipeline.sh logs
+pip install -r requirements.txt
 ```
+
+### 2. Pre-Train the Model (First Time Only)
+
+This creates initial ML models and computes baseline customer/merchant/category statistics from a balanced sample of the dataset (~3K fraud + ~9K legitimate transactions):
+
+```bash
+python pretrain.py
+```
+
+> **What it does**: Trains two River Hoeffding Adaptive Tree classifiers on a balanced subsample, saves models to `pathway_persistence/ml_models.pkl`, and writes initial stats to `pathway_persistence/stats_store.json`.
+
+### 3. Start the Infrastructure (Docker)
+
+```bash
+# Stop any existing containers and reset data
+docker-compose -f docker-compose-monitoring.yml down
+docker volume rm fraud-detection-pipeline_prometheus-data 2>/dev/null
+docker volume rm fraud-detection-pipeline_grafana-data 2>/dev/null
+
+# Start fresh (Redis, NATS, Prometheus, Grafana)
+docker-compose -f docker-compose-monitoring.yml up -d
+```
+
+This starts:
+| Service | Port | Purpose |
+|---|---|---|
+| Redis | `6379` | Feature store |
+| NATS | `4222` (client), `8222` (monitoring) | Message broker |
+| Prometheus | `9090` | Metrics collection |
+| Grafana | `3000` (login: `admin`/`admin`) | Dashboard |
+
+### 4. Clean Previous Run Data
+
+```bash
+./clean.sh
+```
+
+### 5. Load Stats into Redis
+
+```bash
+python redis_manager.py load
+```
+
+### 6. Start Pipeline Components
+
+Start each in a **separate terminal**:
+
+```bash
+# Terminal 1: Fraud Detector
+python run_detector.py
+
+# Terminal 2: Report Generator
+python run_report.py
+
+# Terminal 3: Stats Updater
+python run_stats_updater.py
+
+# Terminal 4: Feedback Writer (online model trainer)
+python run_feedback.py
+
+# Terminal 5: Transaction Publisher (starts both detector + feedback streams)
+python publisher/pub_common.py
+```
+
+### 7. Start the Frontend
+
+```bash
+python frontend/main.py
+```
+
+Open **http://localhost:8000** — the Fraud Investigation Center.
+
+### 8. Access Grafana Dashboard
+
+Open **http://localhost:3000** (login: `admin` / `admin`)
 
 ---
 
-## 🌐 Access Points
+## 🔬 How It Works
 
-After starting, access the following endpoints:
+### Detection Engine: 3-Tier Hybrid Approach
 
-### Dashboards
+All detection rules are **externally configurable** via [`shared/fraud_rules.json`](shared/fraud_rules.json):
 
-| Service | URL | Credentials |
-|---|---|---|
-| **Unified React Dashboard** | [http://localhost:5173](http://localhost:5173) | — |
-| **Grafana (Fraud)** | [http://localhost:3000](http://localhost:3000) | admin / admin |
-| **Grafana (Targeting)** | [http://localhost:3001](http://localhost:3001) | admin / admin |
+#### Tier 1 — Absolute Certainty (Confidence: 95%)
+Triggers on **extreme signals** — any 2+ of:
+- `MASSIVE_AMT`: Z-score > 4.5 standard deviations above customer average
+- `EXTREME_DIST`: Transaction 4+ std devs from home location
+- `FRAUD_MERCHANT`: Merchant with 40%+ historical fraud rate (50+ transactions)
+- `FRAUD_HISTORY`: Customer with 3+ confirmed prior fraud incidents
 
-### APIs & Services
+Also triggers on 1 extreme signal + high ML confidence (≥ 80%).
 
-| Service | URL | Pipeline |
-|---|---|---|
-| **Fraud Detection Frontend** | [http://localhost:8000](http://localhost:8000) | Fraud Detection |
-| **Targeted Calling Backend** | [http://localhost:5001](http://localhost:5001) | Targeted Calling |
-| **Prometheus (Fraud)** | [http://localhost:9090](http://localhost:9090) | Fraud Detection |
-| **Prometheus (Targeting)** | [http://localhost:9095](http://localhost:9095) | Targeted Calling |
+#### Tier 2 — Strong Evidence (Confidence: 80%)
+**Score-based** detection — accumulates points from multiple signals and triggers at 75+ points:
+- `VeryHighAmt` (40 pts), `HighAmt` (30 pts)
+- `VeryFar` (35 pts), `Far` (25 pts)
+- `RiskyMerch` (35 pts), `LateOnline` (25 pts)
+- `PrevFraud` (30 pts), `Amt+Dist` combo (25 pts)
+- `ML_high` ≥80% (25 pts), `ML_medium` ≥70% (15 pts)
 
-### Infrastructure
+#### Tier 3 — ML-Based Detection (Confidence: 75%)
+Triggers when ML score ≥ 82% **and** 2+ supporting behavioral anomalies (amount, distance, merchant risk, category risk, or fraud history).
 
-| Service | Fraud Detection | Targeted Calling |
-|---|---|---|
-| **Redis** | localhost:6379 | localhost:6380 |
-| **NATS** | localhost:4222 | localhost:4223 |
-| **NATS Monitor** | localhost:8222 | localhost:8223 |
+### Online Machine Learning
+
+The model uses a **dual-model ensemble**:
+
+1. **Primary**: `StandardScaler → HoeffdingAdaptiveTreeClassifier` (grace_period=200, delta=1e-5)
+2. **Validator**: Standalone `HoeffdingAdaptiveTreeClassifier` (grace_period=150, delta=1e-4)
+
+The final ML score is the average of both models' fraud probabilities × 100.
+
+**Feature vector** (12 features):
+| Feature | Description |
+|---|---|
+| `amt` | Raw transaction amount |
+| `z_amt` | Z-score of amount vs customer average |
+| `amt_ratio` | Amount / customer average amount |
+| `dist` | Haversine distance between customer and merchant (km) |
+| `z_dist` | Z-score of distance vs customer average |
+| `hr` | Hour of transaction |
+| `merch_risk` | Merchant's historical fraud rate |
+| `cat_risk` | Category's historical fraud rate |
+| `online` | 1 if online category (`shopping_net`, `misc_net`, `grocery_net`) |
+| `late_night` | 1 if between 1–5 AM |
+| `fraud_history` | Customer's prior confirmed fraud count |
+| `n` | Customer's total transaction count (capped at 1000) |
+
+### Redis Feature Store
+
+Customer, merchant, and category profiles are maintained in Redis using atomic pipeline operations:
+
+- **Customers**: Running mean, std deviation (via Welford's online algorithm), fraud history, transaction count
+- **Merchants**: Total transactions, fraud count, fraud rate (computed after 30+ transactions)
+- **Categories**: Total transactions, fraud count, fraud rate (computed after 100+ transactions)
+
+### PDF Report Generation
+
+Each fraud alert generates a multi-page investigation PDF containing:
+- Risk score and severity assessment
+- Decoded fraud indicators with severity levels (CRITICAL / HIGH / MEDIUM)
+- Full transaction details (masked card number)
+- Detection methodology and tier explanation
+- Investigation protocol (immediate and short-term actions)
+- Customer verification questions (templated with transaction details)
+- Risk mitigation strategies
+- Case disposition guidance
+- Legal disclaimer
+
+Reports are saved with companion JSON files for frontend parsing.
 
 ---
 
 ## 📊 Monitoring & Observability
 
-Both pipelines ship with **pre-configured Grafana dashboards** that are auto-provisioned on startup.
+### Prometheus Metrics
 
-### Fraud Detection Dashboard
+Each pipeline component exposes metrics on its own port:
 
-| Panel | Metrics |
-|---|---|
-| **Model Performance** | F1 Score, Precision, Recall (real-time) |
-| **Latency Tracking** | Publisher → Detector, ML inference, end-to-end (p50, p95) |
-| **Alert Rates** | Fraud alerts/min by tier (Critical, High, Medium) |
-| **Throughput** | Transactions processed/sec |
-| **Component Health** | Container status, Redis connectivity |
-
-### Targeted Calling Dashboard
-
-| Panel | Metrics |
-|---|---|
-| **Enrichment Pipeline** | Transaction volume, master match rate, high-value events |
-| **ML Model** | GMM cluster count, component evolution, weight updates |
-| **Feedback Loop** | TP/FP/TN/FN rates, batch processing times, buffer sizes |
-| **Lead Generation** | Qualified leads/min by product category |
-| **System Health** | Memory usage, NATS queue depth, component uptime |
-
-### Alert Rules
-
-Both pipelines include Prometheus alert rules for:
-- Component downtime (> 2 min)
-- High error rates (> 5%)
-- Queue depth anomalies
-- Memory pressure
-- Model staleness (no updates for > 30 min)
-
----
-
-## 📁 Repository Structure
-
-```
-.
-├── start_all.sh                    # Master orchestrator — starts both pipelines + frontend
-├── stop_all.sh                     # Gracefully stops all containers and processes
-├── restart_all.sh                  # Quick restart (skip preprocessing)
-├── requirements.txt                # Unified Python dependencies
-│
-├── Fraud-Detection/                # 🛡 Real-time fraud detection pipeline
-│   ├── pipeline.sh                 #    Pipeline orchestrator (start/stop/restart/status/logs)
-│   ├── pretrain.py                 #    Model pretraining on historical data (~12K samples)
-│   ├── redis_manager.py            #    Redis stats management CLI
-│   ├── detector/                   #    Fraud detector node (Pathway) + stats updater
-│   ├── feedback/                   #    Online model training + false negative collector
-│   ├── publisher/                  #    Transaction & feedback stream publishers
-│   ├── report/                     #    PDF report generator (Pathway + ReportLab)
-│   ├── frontend/                   #    FastAPI web UI for fraud investigation
-│   ├── shared/                     #    Shared modules (models, stats, metrics, rules)
-│   ├── docker/                     #    Dockerfiles + docker-compose
-│   ├── monitoring/                 #    Grafana dashboards + Prometheus configs
-│   └── README.md                   #    Detailed fraud detection documentation
-│
-├── Targeted-Calling/               # 🎯 Intelligent customer targeting pipeline
-│   ├── pipeline.sh                 #    Pipeline orchestrator
-│   ├── dataUpdater/                #    Customer 360 enrichment node (Pathway)
-│   ├── leadPublisher/              #    Lead dispatcher with business rules (Pathway)
-│   ├── carLoanPredictor/           #    GMM prediction node + VAPI caller
-│   ├── carLoanFeedback/            #    Online GMM feedback processor
-│   ├── oracle/                     #    Rules-based ground-truth oracle
-│   ├── transactionPublisher/       #    Transaction stream publisher
-│   ├── models/                     #    Custom Online GMM implementation (onlineGMMv1)
-│   ├── datasetGeneration/          #    Synthetic data generation (8 customer archetypes)
-│   ├── dataManager/                #    Redis data manager + CSV loader
-│   ├── persistenceUtils/           #    Model serialization utilities
-│   ├── pipelineConfigs/            #    ML feature configurations per product
-│   ├── modelVisualiser/            #    Cluster visualization & GIF generation
-│   ├── report_gen/                 #    LLM-powered report generator (GPT-4)
-│   ├── accuracyMetrics/            #    Experiment tracking (5 iterations)
-│   ├── monitoring/                 #    Prometheus + Grafana + alert rules
-│   ├── Backend/                    #    Flask REST API + WebSocket server
-│   ├── Frontend/                   #    React + TypeScript dashboard (Vite)
-│   ├── docker/                     #    Dockerfiles + docker-compose
-│   ├── Persistence/                #    Trained model artifacts (JSON)
-│   └── README.md                   #    Detailed targeted calling documentation
-│
-├── Explaination_arch.mp4           # Architecture explanation video
-└── demo.mp4                        # Full demo video
-```
-
----
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-Both pipelines use environment variables for Docker/local compatibility:
-
-| Variable | Default | Description |
+| Component | Port | Key Metrics |
 |---|---|---|
-| `REDIS_HOST` | `localhost` | Redis server hostname |
-| `REDIS_PORT` | `6379` / `6380` | Redis server port (per pipeline) |
-| `NATS_URI` | `nats://localhost:4222` | NATS server URI |
-| `REDIS_DB` | `0` / `1` | Redis database index |
-| `OPENAI_API_KEY` | (set in code) | OpenAI API key for report generation |
+| Detector | `8001` | `fraud_pipeline_latency_seconds`, `fraud_alerts_total`, `fraud_latency_seconds` |
+| Stats Updater | `8002` | Internal processing metrics |
+| Feedback Writer | `8003` | `fraud_model_f1_score`, `fraud_model_precision`, `fraud_model_recall`, `fraud_model_training_samples_total`, `fraud_model_weight_delta` |
+| Report Generator | `8004` | `fraud_pipeline_latency_seconds` (detector→report, publisher→report end-to-end) |
 
-### Port Allocation
+### Grafana Dashboard
 
-Both pipelines run simultaneously with zero port conflicts:
+The pre-provisioned Grafana dashboard includes 6 panels:
+- **Pipeline Latency** (publisher→detector, detector→report)
+- **Alert Rate** by tier and pattern
+- **Model Performance** (F1, Precision, Recall over time)
+- **Training Progress** (fraud vs legitimate samples)
+- **Model Weight Delta** (convergence tracking)
+- **1-Minute Weighted Moving Averages** (exponential decay, 15s half-life)
 
-| Service | Fraud Detection | Targeted Calling |
-|---|---|---|
-| Redis | 6379 | 6380 |
-| NATS | 4222 | 4223 |
-| NATS Monitor | 8222 | 8223 |
-| Grafana | 3000 | 3001 |
-| Prometheus | 9090 | 9095 |
-| Frontend/Backend | 8000 | 5001 |
-| Metrics (Detector) | 8001 | 8002 |
-
----
-
-## 🔧 Development
-
-### Running Without Docker
+### Latency Monitor (Auto-Restart)
 
 ```bash
-# 1. Install Python dependencies
-pip install -r requirements.txt
+python latency_monitor.py
+```
 
-# 2. Start infrastructure only (via Docker)
-cd Fraud-Detection
-docker-compose -f docker/docker-compose-full.yml up redis nats prometheus grafana -d
+Queries Prometheus every 5 seconds for p50 latency. If `detector_to_report` latency exceeds **10 seconds**, it automatically:
+1. Kills all pipeline processes
+2. Restarts them in order
+3. Waits 60s before resuming checks
+4. Enforces a 2-minute cooldown between restarts
 
-# 3. Run individual components in separate terminals
-python pretrain.py
+---
+
+## 🖥️ Frontend — Fraud Investigation Center
+
+### Features
+
+- **Fraud Alerts Tab**: Queue of 10 diverse fraud reports (unique indicator patterns prioritized), review and mark as Fraud/Legitimate
+- **False Negative Review Tab**: Browse transactions the system marked "legitimate" — catch missed frauds
+- **Grafana Link**: One-click access to the monitoring dashboard
+- **Auto-Refresh**: Queue updates every 5 seconds
+- **PDF Viewer**: Direct access to full investigation reports
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/` | GET | Main HTML interface |
+| `/api/queue` | GET | Get diverse queue of reports with stats |
+| `/api/report/{filename}` | GET | Get detailed report data |
+| `/api/pdf/{filename}` | GET | Serve PDF file |
+| `/api/feedback` | POST | Submit fraud/legitimate verdict |
+| `/api/negatives` | GET | Get false negative transactions |
+| `/api/negative-feedback` | POST | Mark a negative as fraud |
+| `/api/refresh` | POST | Force rescan of reports directory |
+
+---
+
+## 🧪 Testing
+
+### Fraud Pattern Injector
+
+The project includes a comprehensive fraud injection test suite (`tests/inject_frauds.py`) with **30+ fraud patterns**:
+
+```bash
+python tests/inject_frauds.py
+```
+
+**Pattern categories covered**:
+- **Velocity/Burst**: `EXTREME_BURST`, `MAJOR_BURST`, `BURST`, `FastBurst`, `Rapid`
+- **Amount Anomalies**: `MASSIVE_AMT`, `HUGE_AMT`, `VeryHighAmt`, `HighAmt`, `UnusualAmt`
+- **Distance/Location**: `EXTREME_DIST`, `VERY_FAR`, `VeryFar`, `Far`, `UnusualDist`
+- **Merchant Risk**: `FRAUD_MERCHANT`, `BAD_MERCHANT`, `RiskyMerch`
+- **Combinations**: `Amt+Dist`, `Burst+Amt`, `NewMerch+High`, `RareCat+High`, `LateOnline`
+- **History**: `FRAUD_HISTORY`, `REPEAT_FRAUD`, `PrevFraud`
+- **ML Detection**: Complex anomaly patterns
+
+The injector monitors the `fraud_reports/` directory for generated PDFs, validates detection, measures injection-to-detection latency, and produces a full coverage report.
+
+### Health Check
+
+```bash
+python health_check.py
+```
+
+Validates:
+- Model file existence and loadability
+- Stats file integrity
+- Test predictions from both models
+- NATS connectivity
+- Actionable recommendations for common issues
+
+---
+
+## ⚡ Quick Restart (After Stopping Pipeline)
+
+```bash
+# 1. Stop containers and reset Prometheus data
+docker-compose -f docker-compose-monitoring.yml down
+docker volume rm fraud-detection-pipeline_prometheus-data 2>/dev/null
+
+# 2. Restart containers
+docker-compose -f docker-compose-monitoring.yml up -d
+
+# 3. Clean checkpoints and temp files
+./clean.sh
+
+# 4. Reload Redis stats
 python redis_manager.py load
-python -c "from detector.detector_ronly import run_detector; run_detector()"
-python -c "from feedback.feedback_writer import run_feedback_writer; run_feedback_writer()"
+
+# 5. Start all components again (each in separate terminal)
+python run_detector.py
+python run_report.py
+python run_stats_updater.py
+python run_feedback.py
 python publisher/pub_common.py
 python frontend/main.py
 ```
 
-### Frontend Development
+---
+
+## 🔧 Useful Commands
 
 ```bash
-cd Targeted-Calling/Frontend
-npm install
-npm run dev    # → http://localhost:5173
+# Redis management
+python redis_manager.py stats              # Show Redis stats summary
+python redis_manager.py export             # Export Redis data to JSON
+python redis_manager.py inspect <CC_NUM>   # Inspect a specific customer profile
+python redis_manager.py clear              # Clear all Redis data (with confirmation)
+
+# Diagnostics
+python health_check.py                     # Full system health check
+python verify_model.py                     # Verify model predictions
+
+# Process management
+lsof -ti:8000 | xargs kill -9             # Free up frontend port
+lsof -ti:8001 | xargs kill -9             # Free up detector metrics port
 ```
-
-### Adding Dependencies
-
-1. Add to the respective `requirements-docker.txt`
-2. Rebuild images: `docker-compose build --no-cache`
 
 ---
 
-## 🔍 Troubleshooting
+## 📊 Dataset
 
-<details>
-<summary><strong>Containers not starting</strong></summary>
+This pipeline uses the **Simulated Credit Card Transaction Dataset** from Kaggle:
 
-```bash
-docker ps -a                              # Check container status
-docker logs <container-name>              # View specific container logs
-docker-compose -p <project> -f docker/docker-compose-full.yml build --no-cache
-```
-</details>
+🔗 [kaggle.com/datasets/kartik2112/fraud-detection](https://www.kaggle.com/datasets/kartik2112/fraud-detection?resource=download&select=fraudTrain.csv)
 
-<details>
-<summary><strong>Port conflicts</strong></summary>
+- **~1.3M transactions** with 23 features
+- Binary `is_fraud` label
+- Class distribution: ~0.58% fraud (highly imbalanced)
+- Features: transaction amount, merchant, category, location (lat/long), timestamp, customer demographics
 
-```bash
-lsof -i :<port>    # Find process using the port
-kill -9 <PID>      # Kill the conflicting process
-```
-</details>
-
-<details>
-<summary><strong>Redis connection issues</strong></summary>
-
-```bash
-docker exec fraud-redis redis-cli ping
-docker exec targeting-redis redis-cli ping
-```
-</details>
-
-<details>
-<summary><strong>Clean restart</strong></summary>
-
-```bash
-docker stop $(docker ps -aq)
-docker rm $(docker ps -aq)
-docker network prune -f
-docker volume prune -f
-./start_all.sh
-```
-</details>
+Place `fraudTrain.csv` in the project root before running.
 
 ---
 
-## 📈 Results & Metrics
+## 🏛️ NATS Topics
 
-### Fraud Detection
-
-| Metric | Value |
-|---|---|
-| Pre-training F1 Score | ~85–90% |
-| Detection Latency (p50) | 1–5 ms |
-| Sustained Throughput | 25+ TPS |
-| False Positive Rate | < 15% after warm-up |
-| Online Learning | Continuous (per-feedback update) |
-
-### Targeted Calling
-
-| Metric | Value |
-|---|---|
-| Customer Enrichment | Real-time (100ms autocommit) |
-| Lead Qualification | 4 products, rules-based dispatch |
-| GMM Cluster Adaptation | Batch updates (every 20 feedbacks) |
-| Oracle Accuracy | Tracks TP/FP/TN/FN rates live |
-| Report Generation | GPT-4 powered PDF reports |
-
----
-
-## 📄 License
-
-MIT License. See individual pipeline directories for component-specific licensing.
+| Topic | Producer | Consumer | Payload |
+|---|---|---|---|
+| `fraud.transactions` | Publisher | Detector | Transaction JSON (no `is_fraud`) |
+| `fraud.feedback` | Publisher | Feedback Writer | Transaction JSON (with `is_fraud`) |
+| `fraud.results` | Detector | Negative Collector, Stats Updater | Detection result JSON (all transactions) |
+| `fraud.alerts` | Detector | Report Generator | Alert JSON (fraud alerts only) |
+| `fraud.reports` | Report Generator | — | Report metadata JSON |
