@@ -6,6 +6,15 @@
   <p align="center">
     <em>Built with Pathway · NATS JetStream · Online ML · Docker · React</em>
   </p>
+
+<p align="center">
+  <a href="https://pathway.com/"><img src="https://img.shields.io/badge/Pathway-Streaming-blue?style=for-the-badge&logo=apache" alt="Pathway"></a>
+  <a href="https://nats.io/"><img src="https://img.shields.io/badge/NATS-JetStream-27A1DF?style=for-the-badge&logo=NATS" alt="NATS"></a>
+  <a href="https://redis.io/"><img src="https://img.shields.io/badge/Redis-In--Memory-DC382D?style=for-the-badge&logo=redis" alt="Redis"></a>
+  <a href="https://riverml.xyz/"><img src="https://img.shields.io/badge/River-Online%20ML-6B5B95?style=for-the-badge&logo=python" alt="River ML"></a>
+  <a href="https://reactjs.org/"><img src="https://img.shields.io/badge/React-Dashboard-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React"></a>
+</p>
+
   <p align="center">
     <a href="#-fraud-detection-pipeline">Fraud Detection</a> · 
     <a href="#-targeted-calling-pipeline">Targeted Calling</a> · 
@@ -43,59 +52,81 @@ Both pipelines ingest streaming transaction data via **NATS JetStream**, process
 
 ---
 
+
 ## 🏗 Architecture
 
+<div align="center">
+  <img src="assets/images/architecture_combined.png" alt="Combined Architecture" width="850"/>
+  <br/>
+  <em>Combined Pipeline Architecture showing both Fraud Detection and Targeted Calling</em>
+</div>
+
+<br>
+
+### 🌊 Data Flow Pipeline
+
+```mermaid
+graph TD
+    classDef stream fill:#2b2b2b,stroke:#00f0ff,stroke-width:2px,color:#fff;
+    classDef pathway fill:#0b3d91,stroke:#4db8ff,stroke-width:2px,color:#fff;
+    classDef db fill:#5e1724,stroke:#ff4d4d,stroke-width:2px,color:#fff;
+    classDef frontend fill:#1c5e3d,stroke:#33ff99,stroke-width:2px,color:#fff;
+
+    subgraph "Ingestion (NATS JetStream)"
+        T1[Transaction Stream]:::stream
+        F1[Feedback Stream]:::stream
+    end
+
+    subgraph "Fraud Detection Pipeline"
+        P1[HAT Ensemble Detector]:::pathway
+        P2[Stats & Profile Updater]:::pathway
+    end
+
+    subgraph "Targeted Calling Pipeline"
+        P3[Customer 360 Enrichment]:::pathway
+        P4[Online GMM Predictor]:::pathway
+        P5[VAPI AI Caller Node]:::pathway
+    end
+
+    subgraph "State & Storage"
+        R1[(Redis: Customer Profiles)]:::db
+        R2[(Redis: ML State)]:::db
+    end
+
+    subgraph "Presentation Layer"
+        UI[Unified React Dashboard]:::frontend
+        API[FastAPI & Flask Backend]:::frontend
+    end
+
+    T1 --> P1
+    T1 --> P3
+    
+    P1 <--> R1
+    P3 <--> R1
+    
+    P1 --> P2
+    P3 --> P4
+    
+    P4 <--> R2
+    P2 <--> R2
+    
+    P4 --> P5
+    P5 --> F1
+    
+    P1 --> API
+    P4 --> API
+    API --> UI
 ```
-┌───────────────────────────────────────────────────────────────────────────────────────┐
-│                          REAL-TIME BANKING ANALYTICS PLATFORM                          │
-├───────────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                       │
-│  ┌────────────────────────────────┐       ┌────────────────────────────────────────┐  │
-│  │    FRAUD DETECTION PIPELINE    │       │      TARGETED CALLING PIPELINE         │  │
-│  │                                │       │                                        │  │
-│  │  fraudTrain.csv                │       │  Synthetic Customer Data (12.5K)       │  │
-│  │       │                        │       │       │                                │  │
-│  │       ▼                        │       │       ▼                                │  │
-│  │  ┌──────────┐  NATS JetStream  │       │  ┌────────────────┐   NATS JetStream   │  │
-│  │  │Publisher  │──►fraud.txns     │       │  │Txn Publisher   │──►transactions     │  │
-│  │  └──────────┘  fraud.feedback  │       │  │Lead Publisher  │  .stream           │  │
-│  │       │                        │       │  └────────────────┘                    │  │
-│  │       ▼                        │       │       │                                │  │
-│  │  ┌──────────┐                  │       │       ▼                                │  │
-│  │  │Detector  │ HAT Ensemble     │       │  ┌────────────────┐                    │  │
-│  │  │(Pathway) │ + Rule Engine    │       │  │Data Updater    │ Customer 360       │  │
-│  │  └──────────┘                  │       │  │(Pathway)       │ Real-time Enrichment│  │
-│  │       │                        │       │  └────────────────┘                    │  │
-│  │       ├──► Stats Updater       │       │       │                                │  │
-│  │       ├──► Feedback Writer     │       │       ├──► Lead Dispatcher              │  │
-│  │       ├──► Report Generator    │       │       │    (Business Rules Engine)      │  │
-│  │       └──► Frontend (FastAPI)  │       │       │                                │  │
-│  │                                │       │       ▼                                │  │
-│  │  Infrastructure:               │       │  ┌────────────────┐                    │  │
-│  │  • Redis     :6379             │       │  │GMM Predictor   │ Online Clustering  │  │
-│  │  • NATS      :4222             │       │  │(Pathway)       │ + Mahalanobis Dist │  │
-│  │  • Grafana   :3000             │       │  └────────────────┘                    │  │
-│  │  • Prometheus:9090             │       │       │                                │  │
-│  │  • Frontend  :8000             │       │       ├──► Oracle (Rules Ground-Truth)  │  │
-│  │                                │       │       ├──► Feedback Node (GMM Updates)  │  │
-│  │                                │       │       ├──► Caller Node (VAPI + GPT-4)  │  │
-│  │                                │       │       └──► Backend API (Flask + WS)    │  │
-│  │                                │       │                                        │  │
-│  │                                │       │  Infrastructure:                       │  │
-│  │                                │       │  • Redis     :6380                     │  │
-│  │                                │       │  • NATS      :4223                     │  │
-│  │                                │       │  • Grafana   :3001                     │  │
-│  │                                │       │  • Prometheus:9095                     │  │
-│  │                                │       │  • Backend   :5001                     │  │
-│  └────────────────────────────────┘       └────────────────────────────────────────┘  │
-│                                                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────────────────┐  │
-│  │                      Unified React Dashboard  :5173                              │  │
-│  │          (Reports · Call Logs · Model Stats · Cluster Visualizations)             │  │
-│  └─────────────────────────────────────────────────────────────────────────────────┘  │
-│                                                                                       │
-└───────────────────────────────────────────────────────────────────────────────────────┘
-```
+
+<br>
+
+### 🔍 Detailed Pipeline Views
+
+<div align="center">
+  <img src="Fraud-Detection/architecture.jpg" alt="Fraud Detection Architecture" width="48%"/>
+  <img src="assets/images/architecture_targeted.png" alt="Targeted Calling Architecture" width="48%"/>
+</div>
+
 
 ---
 
